@@ -1,0 +1,25 @@
+# Core dependencies
+torch
+torchvision
+torchaudio
+numpy
+pillow
+opencv-python
+scipy
+django
+modal
+
+# Diffusion models (Stable Diffusion, AnimateDiff, etc.)
+diffusers
+transformers
+accelerate
+
+# Face and image enhancement
+gfpgan
+realesrgan
+
+# Task queue (optional, for async job processing)
+celery
+redis
+
+djangorestframework

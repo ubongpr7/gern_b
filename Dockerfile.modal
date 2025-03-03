@@ -1,0 +1,63 @@
+FROM python:3.10-slim
+
+ENV DEBIAN_FRONTEND=noninteractive
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
+ENV IMAGEMAGICK_BINARY=/usr/bin/convert
+ENV MODEL_DIR=/models
+RUN apt update
+RUN apt -y install \
+  wget \
+  build-essential \
+  libssl* \
+  libffi-dev \
+  libespeak-dev \
+  zlib1g-dev \
+  libmupdf-dev \
+  libfreetype6-dev \
+  ffmpeg \
+  espeak \
+  imagemagick \
+  libpango1.0-dev \
+  git \
+  postgresql \
+  postgresql-contrib \
+  libfreetype6 \
+  libfontconfig1 \
+  fonts-liberation
+
+RUN wget https://www.python.org/ftp/python/3.10.14/Python-3.10.14.tgz
+RUN tar -xzvf Python-3.10.14.tgz
+RUN cd Python-3.10.14
+WORKDIR Python-3.10.14
+RUN ./configure --enable-optimizations --with-system-ffi
+RUN make -j 16
+RUN make altinstall
+
+WORKDIR /app
+COPY modal_requirements.txt /app/
+
+COPY ./requirements.txt .
+
+RUN pip3.10 install --no-cache-dir -r requirements.txt
+RUN pip3.10 install --no-cache-dir -r modal_requirements.txt
+RUN pip3.10 install torch==2.0.1+cu118 torchvision==0.15.2+cu118 torchaudio==2.0.2 --index-url https://download.pytorch.org/whl/cu118
+RUN pip3.10 install xformers==0.0.21
+
+# Create models directory
+RUN mkdir -p $MODEL_DIR
+
+# Download models
+# WORKDIR $MODEL_DIR
+# # GFPGAN
+# RUN wget -O GFPGANv1.4.pth https://github.com/TencentARC/GFPGAN/releases/download/v1.3.4/GFPGANv1.4.pth
+# # RealESRGAN
+# RUN wget -O RealESRGAN_x4plus.pth https://github.com/xinntao/Real-ESRGAN/releases/download/v0.2.2.4/RealESRGAN_x4plus_anime_6B.pth -P weights
+
+WORKDIR /app
+COPY . .
+COPY .env /app/.env
+
+
+EXPOSE 7726
+CMD ["bash", "-c", "export $(cat /app/.env | xargs) && python3.10 manage.py migrate && python3.10 manage.py runserver 0.0.0.0:7726"]

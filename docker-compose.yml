@@ -1,0 +1,16 @@
+services:
+  web:
+    image: ubongpr7/diffusion_models:latest
+    # image: ubongpr7/gern_backend:latest
+    env_file: .env
+    command: >
+      sh -c "python manage.py makemigrations &&
+             python manage.py migrate &&
+             python manage.py runserver 0.0.0.0:7726"
+    volumes:
+      - .:/app # keep this, to work on the django app.
+    ports:
+      - "7726:7726"
+
+# docker exec -it edbef9850f2d   /bin/bash
+# nano /usr/local/lib/python3.10/site-packages/diffusers/dynamic_modules_utils.py 
